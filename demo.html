@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CyberGuard Scanner Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; }
+        .link-box { margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+        a { font-size: 18px; text-decoration: none; color: blue; }
+    </style>
+</head>
+<body>
+
+    <h1>🛡️ CyberGuard Threat Detection Demo</h1>
+    <p>Scroll down to see the scanner actively evaluate these links.</p>
+
+    <div class="link-box">
+        <h3>1. Safe Link (Should be ignored)</h3>
+        <a href="https://github.com/rizwan-here/CyberGuard">Go to CyberGuard GitHub</a>
+    </div>
+
+    <div class="link-box">
+        <h3>2. IP-Based Domain Threat</h3>
+        <a href="http://192.168.1.150/admin-login">Click here to claim your prize!</a>
+    </div>
+
+    <div class="link-box">
+        <h3>3. Punycode (Homograph) Attack</h3>
+        <a href="https://www.xn--ggle-pqa.com/login">Go to "Google" (Fake)</a>
+    </div>
+
+    <div class="link-box">
+        <h3>4. Highly Abused Free TLD</h3>
+        <a href="http://freemovies2026.tk/watch">Watch Free Movies Now</a>
+    </div>
+
+    <div class="link-box">
+        <h3>5. Suspicious Embedded Payload (XSS)</h3>
+        <a href="javascript:alert('You have been hacked!')">Click for a surprise</a>
+    </div>
+
+</body>
+</html>
