@@ -1,0 +1,13 @@
+{
+    "manifest_version": 3,
+    "name": "CyberGuard Link Scanner",
+    "version": "1.0",
+    "description": "Automatically scans DOM links for vulnerabilities and reports them to CyberGuard.",
+    "permissions": ["activeTab", "scripting"],
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content_script.js"]
+        }
+    ]
+}
