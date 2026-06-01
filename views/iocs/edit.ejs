@@ -1,0 +1,48 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="container narrow">
+  <%- include('../partials/flash') %>
+  <section class="page-title">
+    <h1>Edit IoC</h1>
+    <p>Update threat intelligence information.</p>
+  </section>
+
+  <section class="panel">
+    <form action="/iocs/<%= ioc._id %>/edit" method="POST" class="form grid-form">
+      <label>IoC Value *</label>
+      <input type="text" name="value" value="<%= ioc.value %>" required>
+
+      <label>IoC Type</label>
+      <select name="iocType">
+        <% ["IP", "Domain", "URL", "MD5", "SHA1", "SHA256", "Email", "Unknown"].forEach(type => { %>
+          <option value="<%= type %>" <%= ioc.iocType === type ? 'selected' : '' %>><%= type %></option>
+        <% }) %>
+      </select>
+
+      <label>Threat Type *</label>
+      <input type="text" name="threatType" value="<%= ioc.threatType %>" required>
+
+      <label>Severity</label>
+      <select name="severity">
+        <% ["Low", "Medium", "High", "Critical"].forEach(sev => { %>
+          <option value="<%= sev %>" <%= ioc.severity === sev ? 'selected' : '' %>><%= sev %></option>
+        <% }) %>
+      </select>
+
+      <label>Confidence</label>
+      <input type="number" name="confidence" min="0" max="100" value="<%= ioc.confidence %>">
+
+      <label>Source</label>
+      <input type="text" name="source" value="<%= ioc.source %>">
+
+      <label>Description</label>
+      <textarea name="description" rows="4"><%= ioc.description %></textarea>
+
+      <label>Tags</label>
+      <input type="text" name="tags" value="<%= ioc.tags ? ioc.tags.join(',') : '' %>">
+
+      <button type="submit" class="btn primary">Update IoC</button>
+    </form>
+  </section>
+</main>
+<%- include('../partials/footer') %>

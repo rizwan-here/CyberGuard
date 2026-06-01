@@ -1,0 +1,22 @@
+<header class="topbar">
+  <div class="brand">
+    <a href="/">CyberGuard</a>
+    <span>On-Premises SOC Threat Intelligence</span>
+  </div>
+  <% if (currentUser) { %>
+    <nav class="nav-links">
+      <a href="/">Dashboard</a>
+      <a href="/iocs/search">Search IoC</a>
+      <a href="/iocs">Repository</a>
+      <% if (currentUser.role === "admin") { %>
+        <a href="/iocs/add">Add IoC</a>
+        <a href="/iocs/import">Import CSV</a>
+      <% } %>
+      <a href="/reports">Reports</a>
+    </nav>
+    <form action="/logout" method="POST" class="logout-form">
+      <span class="user-pill"><%= currentUser.username %> · <%= currentUser.role %></span>
+      <button type="submit" class="btn small danger">Logout</button>
+    </form>
+  <% } %>
+</header>

@@ -1,0 +1,23 @@
+<%- include('../partials/header') %>
+<main class="login-page">
+  <section class="login-card">
+    <h1>CyberGuard</h1>
+    <p class="muted">On-premises SOC threat intelligence repository</p>
+    <%- include('../partials/flash') %>
+    <form action="/login" method="POST" class="form">
+      <label>Username</label>
+      <input type="text" name="username" placeholder="admin" required autofocus>
+
+      <label>Password</label>
+      <input type="password" name="password" placeholder="admin123" required>
+
+      <button type="submit" class="btn primary full">Login</button>
+    </form>
+    <div class="demo-box">
+      <strong>Demo Accounts</strong>
+      <p>Admin: <code>admin</code> / <code>admin123</code></p>
+      <p>Analyst: <code>analyst</code> / <code>analyst123</code></p>
+    </div>
+  </section>
+</main>
+<%- include('../partials/footer') %>

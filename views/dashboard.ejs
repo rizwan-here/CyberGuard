@@ -1,0 +1,98 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+<main class="container">
+  <%- include('partials/flash') %>
+  <section class="page-title">
+    <h1>Dashboard</h1>
+    <p>Quick view of your local threat intelligence repository.</p>
+  </section>
+
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span>Total IoCs</span>
+      <strong><%= totalIocs %></strong>
+    </div>
+    <div class="stat-card critical">
+      <span>Critical IoCs</span>
+      <strong><%= criticalIocs %></strong>
+    </div>
+    <div class="stat-card high">
+      <span>High Severity</span>
+      <strong><%= highIocs %></strong>
+    </div>
+    <div class="stat-card">
+      <span>Logged In As</span>
+      <strong><%= currentUser.role %></strong>
+    </div>
+  </section>
+
+  <section class="two-column">
+    <div class="panel">
+      <h2>IoCs by Type</h2>
+      <% if (byType.length === 0) { %>
+        <p class="muted">No IoCs added yet.</p>
+      <% } else { %>
+        <table>
+          <thead><tr><th>Type</th><th>Count</th></tr></thead>
+          <tbody>
+            <% byType.forEach(item => { %>
+              <tr><td><%= item._id %></td><td><%= item.count %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+
+    <div class="panel">
+      <h2>IoCs by Severity</h2>
+      <% if (bySeverity.length === 0) { %>
+        <p class="muted">No IoCs added yet.</p>
+      <% } else { %>
+        <table>
+          <thead><tr><th>Severity</th><th>Count</th></tr></thead>
+          <tbody>
+            <% bySeverity.forEach(item => { %>
+              <tr><td><span class="badge <%= item._id.toLowerCase() %>"><%= item._id %></span></td><td><%= item.count %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+  </section>
+
+  <section class="two-column">
+    <div class="panel">
+      <h2>Recent IoCs</h2>
+      <% if (recentIocs.length === 0) { %>
+        <p class="muted">Start by adding or importing IoCs.</p>
+      <% } else { %>
+        <table>
+          <thead><tr><th>Value</th><th>Type</th><th>Severity</th></tr></thead>
+          <tbody>
+            <% recentIocs.forEach(ioc => { %>
+              <tr>
+                <td class="mono"><%= ioc.value %></td>
+                <td><%= ioc.iocType %></td>
+                <td><span class="badge <%= ioc.severity.toLowerCase() %>"><%= ioc.severity %></span></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </div>
+
+    <div class="panel">
+      <h2>Recent Audit Logs</h2>
+      <% if (recentLogs.length === 0) { %>
+        <p class="muted">No audit logs yet.</p>
+      <% } else { %>
+        <ul class="log-list">
+          <% recentLogs.forEach(log => { %>
+            <li><strong><%= log.action %></strong><span><%= log.username %> · <%= log.createdAt.toLocaleString() %></span></li>
+          <% }) %>
+        </ul>
+      <% } %>
+    </div>
+  </section>
+</main>
+<%- include('partials/footer') %>

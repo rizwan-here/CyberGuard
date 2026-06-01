@@ -1,0 +1,84 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+<main class="container wide">
+  <%- include('partials/flash') %>
+  <section class="page-title">
+    <h1>Threat Reports</h1>
+    <p>Summary report generated from the local IoC repository.</p>
+  </section>
+
+  <section class="two-column">
+    <div class="panel">
+      <h2>By Severity</h2>
+      <table>
+        <thead><tr><th>Severity</th><th>Count</th></tr></thead>
+        <tbody>
+          <% bySeverity.forEach(item => { %>
+            <tr><td><span class="badge <%= item._id.toLowerCase() %>"><%= item._id %></span></td><td><%= item.count %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>By IoC Type</h2>
+      <table>
+        <thead><tr><th>Type</th><th>Count</th></tr></thead>
+        <tbody>
+          <% byType.forEach(item => { %>
+            <tr><td><%= item._id %></td><td><%= item.count %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="two-column">
+    <div class="panel">
+      <h2>Top Threat Types</h2>
+      <table>
+        <thead><tr><th>Threat Type</th><th>Count</th></tr></thead>
+        <tbody>
+          <% byThreatType.forEach(item => { %>
+            <tr><td><%= item._id %></td><td><%= item.count %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>Top Sources</h2>
+      <table>
+        <thead><tr><th>Source</th><th>Count</th></tr></thead>
+        <tbody>
+          <% topSources.forEach(item => { %>
+            <tr><td><%= item._id %></td><td><%= item.count %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel table-panel">
+    <h2>Recent High/Critical IoCs</h2>
+    <% if (recentCritical.length === 0) { %>
+      <p class="muted">No high or critical IoCs found.</p>
+    <% } else { %>
+      <table>
+        <thead><tr><th>Value</th><th>Type</th><th>Threat</th><th>Severity</th><th>Source</th></tr></thead>
+        <tbody>
+          <% recentCritical.forEach(ioc => { %>
+            <tr>
+              <td class="mono wrap"><%= ioc.value %></td>
+              <td><%= ioc.iocType %></td>
+              <td><%= ioc.threatType %></td>
+              <td><span class="badge <%= ioc.severity.toLowerCase() %>"><%= ioc.severity %></span></td>
+              <td><%= ioc.source %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </section>
+</main>
+<%- include('partials/footer') %>

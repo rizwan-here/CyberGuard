@@ -1,0 +1,43 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="container">
+  <%- include('../partials/flash') %>
+  <section class="page-title">
+    <h1>IoC Search / Identification</h1>
+    <p>Enter an IP, domain, URL, file hash, or email to check the local repository.</p>
+  </section>
+
+  <section class="panel">
+    <form action="/iocs/search" method="POST" class="search-form">
+      <input type="text" name="value" value="<%= query %>" placeholder="Example: 203.0.113.10 or 44d88612fea8a8f36de82e1278abb02f" required>
+      <button class="btn primary" type="submit">Search</button>
+    </form>
+  </section>
+
+  <% if (searched) { %>
+    <section class="panel result-panel">
+      <h2>Search Result</h2>
+      <p><strong>Input:</strong> <span class="mono"><%= query %></span></p>
+      <p><strong>Detected Type:</strong> <%= detectedType %></p>
+
+      <% if (result) { %>
+        <div class="match found">Match Found</div>
+        <table>
+          <tbody>
+            <tr><th>Value</th><td class="mono"><%= result.value %></td></tr>
+            <tr><th>Type</th><td><%= result.iocType %></td></tr>
+            <tr><th>Threat Type</th><td><%= result.threatType %></td></tr>
+            <tr><th>Severity</th><td><span class="badge <%= result.severity.toLowerCase() %>"><%= result.severity %></span></td></tr>
+            <tr><th>Confidence</th><td><%= result.confidence %>%</td></tr>
+            <tr><th>Source</th><td><%= result.source %></td></tr>
+            <tr><th>Description</th><td><%= result.description || 'N/A' %></td></tr>
+            <tr><th>Tags</th><td><%= result.tags && result.tags.length ? result.tags.join(', ') : 'N/A' %></td></tr>
+          </tbody>
+        </table>
+      <% } else { %>
+        <div class="match not-found">No known IoC found in local repository.</div>
+      <% } %>
+    </section>
+  <% } %>
+</main>
+<%- include('../partials/footer') %>

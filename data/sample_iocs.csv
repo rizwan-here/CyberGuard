@@ -1,0 +1,6 @@
+value,type,threatType,severity,confidence,source,description,tags
+203.0.113.10,IP,Malware C2,High,85,Internal SOC,Demo malicious IP,"malware,c2"
+malicious-demo.test,Domain,Phishing,Medium,70,Manual Feed,Demo phishing domain,"phishing,demo"
+https://malicious-demo.test/login,URL,Credential Harvesting,Critical,90,Threat Hunting,Demo credential harvesting URL,"phishing,credential-theft"
+44d88612fea8a8f36de82e1278abb02f,MD5,Malware Sample,High,95,Malware Lab,Demo malware hash,"malware,hash"
+attacker@example.test,Email,Phishing Sender,Medium,65,Email Gateway,Demo suspicious sender email,"email,phishing"

@@ -1,0 +1,25 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="container narrow">
+  <%- include('../partials/flash') %>
+  <section class="page-title">
+    <h1>Import IoCs from CSV</h1>
+    <p>Bulk upload Indicators of Compromise into the local MongoDB repository.</p>
+  </section>
+
+  <section class="panel">
+    <form action="/iocs/import" method="POST" enctype="multipart/form-data" class="form">
+      <label>Choose CSV File</label>
+      <input type="file" name="csvFile" accept=".csv" required>
+      <button type="submit" class="btn primary">Import CSV</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Required CSV Format</h2>
+    <pre class="code-block">value,type,threatType,severity,confidence,source,description,tags
+203.0.113.10,IP,Malware C2,High,85,Internal SOC,Demo malicious IP,"malware,c2"</pre>
+    <p class="muted">A sample file is included in <code>data/sample_iocs.csv</code>.</p>
+  </section>
+</main>
+<%- include('../partials/footer') %>

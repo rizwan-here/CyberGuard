@@ -1,0 +1,54 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="container narrow">
+  <%- include('../partials/flash') %>
+  <section class="page-title">
+    <h1>Add New IoC</h1>
+    <p>Admin users can add threat indicators to the local repository.</p>
+  </section>
+
+  <section class="panel">
+    <form action="/iocs/add" method="POST" class="form grid-form">
+      <label>IoC Value *</label>
+      <input type="text" name="value" placeholder="203.0.113.10" required>
+
+      <label>IoC Type</label>
+      <select name="iocType">
+        <option value="Unknown">Auto/Unknown</option>
+        <option value="IP">IP</option>
+        <option value="Domain">Domain</option>
+        <option value="URL">URL</option>
+        <option value="MD5">MD5</option>
+        <option value="SHA1">SHA1</option>
+        <option value="SHA256">SHA256</option>
+        <option value="Email">Email</option>
+      </select>
+
+      <label>Threat Type *</label>
+      <input type="text" name="threatType" placeholder="Malware C2 / Phishing / Botnet" required>
+
+      <label>Severity</label>
+      <select name="severity">
+        <option>Low</option>
+        <option selected>Medium</option>
+        <option>High</option>
+        <option>Critical</option>
+      </select>
+
+      <label>Confidence</label>
+      <input type="number" name="confidence" min="0" max="100" value="50">
+
+      <label>Source</label>
+      <input type="text" name="source" placeholder="Internal SOC / Malware Lab / Manual Feed">
+
+      <label>Description</label>
+      <textarea name="description" rows="4" placeholder="Short details about this indicator"></textarea>
+
+      <label>Tags</label>
+      <input type="text" name="tags" placeholder="malware,c2,phishing">
+
+      <button type="submit" class="btn primary">Save IoC</button>
+    </form>
+  </section>
+</main>
+<%- include('../partials/footer') %>

@@ -1,0 +1,77 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+<main class="container wide">
+  <%- include('../partials/flash') %>
+  <section class="page-title flex-title">
+    <div>
+      <h1>IoC Repository</h1>
+      <p>Browse and filter stored Indicators of Compromise.</p>
+    </div>
+    <% if (currentUser.role === "admin") { %>
+      <a href="/iocs/add" class="btn primary">Add IoC</a>
+    <% } %>
+  </section>
+
+  <section class="panel">
+    <form method="GET" action="/iocs" class="filter-form">
+      <input type="text" name="search" value="<%= search %>" placeholder="Search value, threat type, source, tag">
+      <select name="iocType">
+        <option value="">All Types</option>
+        <% ["IP", "Domain", "URL", "MD5", "SHA1", "SHA256", "Email", "Unknown"].forEach(type => { %>
+          <option value="<%= type %>" <%= iocType === type ? 'selected' : '' %>><%= type %></option>
+        <% }) %>
+      </select>
+      <select name="severity">
+        <option value="">All Severities</option>
+        <% ["Low", "Medium", "High", "Critical"].forEach(sev => { %>
+          <option value="<%= sev %>" <%= severity === sev ? 'selected' : '' %>><%= sev %></option>
+        <% }) %>
+      </select>
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn ghost" href="/iocs">Reset</a>
+    </form>
+  </section>
+
+  <section class="panel table-panel">
+    <% if (iocs.length === 0) { %>
+      <p class="muted">No IoCs found.</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Value</th>
+            <th>Type</th>
+            <th>Threat Type</th>
+            <th>Severity</th>
+            <th>Confidence</th>
+            <th>Source</th>
+            <th>Updated</th>
+            <% if (currentUser.role === "admin") { %><th>Action</th><% } %>
+          </tr>
+        </thead>
+        <tbody>
+          <% iocs.forEach(ioc => { %>
+            <tr>
+              <td class="mono wrap"><%= ioc.value %></td>
+              <td><%= ioc.iocType %></td>
+              <td><%= ioc.threatType %></td>
+              <td><span class="badge <%= ioc.severity.toLowerCase() %>"><%= ioc.severity %></span></td>
+              <td><%= ioc.confidence %>%</td>
+              <td><%= ioc.source %></td>
+              <td><%= ioc.updatedAt.toLocaleDateString() %></td>
+              <% if (currentUser.role === "admin") { %>
+                <td class="actions">
+                  <a class="btn small" href="/iocs/<%= ioc._id %>/edit">Edit</a>
+                  <form action="/iocs/<%= ioc._id %>/delete" method="POST" onsubmit="return confirm('Delete this IoC?')">
+                    <button class="btn small danger" type="submit">Delete</button>
+                  </form>
+                </td>
+              <% } %>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </section>
+</main>
+<%- include('../partials/footer') %>
