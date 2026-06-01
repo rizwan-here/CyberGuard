@@ -11,6 +11,7 @@ const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const iocRoutes = require("./routes/iocRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const browserScanRoutes = require("./routes/browserScanRoutes");
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use(attachUser);
 app.use(authRoutes);
 app.use("/", dashboardRoutes);
 app.use("/iocs", iocRoutes);
+app.use("/iocs", browserScanRoutes);
 app.use("/reports", reportRoutes);
 
 app.use((req, res) => {
