@@ -12,6 +12,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const iocRoutes = require("./routes/iocRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const browserScanRoutes = require("./routes/browserScanRoutes");
+const apiRoutes = require("./routes/apiRoutes"); // New API routes
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use("/", dashboardRoutes);
 app.use("/iocs", iocRoutes);
 app.use("/iocs", browserScanRoutes);
 app.use("/reports", reportRoutes);
+app.use("/api", apiRoutes); // Mount API routes
 
 app.use((req, res) => {
   res.status(404).render("error", {

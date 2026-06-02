@@ -1,0 +1,62 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container">
+  <div class="page-header">
+    <h1>Parse Threat Report</h1>
+    <a href="/iocs" class="btn btn-secondary">Back to Repository</a>
+  </div>
+
+  <%- include('../partials/flash') %>
+
+  <div class="card form-card" style="max-width: 800px;">
+    <p>Paste the raw text of a threat intelligence report, blog post, or email below. The system will automatically extract and deduplicate IPs, Domains, and Hashes.</p>
+    
+    <form action="/iocs/parse" method="POST">
+      <div class="form-group">
+        <label for="reportText">Raw Report Text (Required)</label>
+        <textarea id="reportText" name="reportText" rows="12" required placeholder="Paste blog post or PDF text here..."></textarea>
+      </div>
+
+      <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+        <div class="form-group" style="flex: 1;">
+          <label for="threatType">Default Threat Type (Applied to all extracted IoCs)</label>
+          <input type="text" id="threatType" name="threatType" value="Unknown Threat" required />
+        </div>
+
+        <div class="form-group" style="flex: 1;">
+          <label for="severity">Default Severity</label>
+          <select id="severity" name="severity">
+            <option value="Low">Low</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+        <div class="form-group" style="flex: 1;">
+          <label for="source">Source</label>
+          <input type="text" id="source" name="source" value="Report Parser" />
+        </div>
+        
+        <div class="form-group" style="flex: 1;">
+          <label for="tags">Tags (comma-separated)</label>
+          <input type="text" id="tags" name="tags" placeholder="apt, campaign, malware" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Shared Description (Optional)</label>
+        <input type="text" id="description" name="description" placeholder="Extracted from Unit42 Report..." />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Extract & Add IoCs</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

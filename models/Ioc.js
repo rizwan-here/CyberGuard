@@ -59,4 +59,31 @@ iocSchema.index({ severity: 1 });
 iocSchema.index({ iocType: 1 });
 iocSchema.index({ threatType: 1 });
 
+// POST-SAVE HOOK: Push to SIEM Webhook
+iocSchema.post('save', async function(doc) {
+  const webhookUrl = process.env.SIEM_WEBHOOK_URL;
+  if (!webhookUrl) return; // Skip if no SIEM configured
+
+  try {
+      const payload = {
+          action: "NEW_IOC_ADDED",
+          ioc_value: doc.value,
+          ioc_type: doc.iocType,
+          threat_type: doc.threatType,
+          severity: doc.severity,
+          source: "CyberGuard_TIP"
+      };
+
+      // Native Node.js fetch (Requires Node v18+)
+      await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+      });
+      console.log(`[+] Successfully pushed IoC ${doc.value} to SIEM webhook.`);
+  } catch (error) {
+      console.error(`[-] Failed to push to SIEM webhook:`, error.message);
+  }
+});
+
 module.exports = mongoose.model("Ioc", iocSchema);

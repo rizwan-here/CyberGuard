@@ -6,6 +6,7 @@ const Ioc = require("../models/Ioc");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 const { detectIocType, normalizeIocValue } = require("../utils/detectIocType");
 const writeAuditLog = require("../utils/audit");
+const extractIocs = require("../utils/reportParser"); // New Parser Utility
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -31,6 +32,65 @@ function cleanIocType(value, fallbackValue) {
   const match = allowed.find((item) => item.toLowerCase() === input.toLowerCase());
   return match || detectIocType(fallbackValue);
 }
+
+// --- NEW ROUTES FOR REPORT PARSING ---
+router.get("/parse", requireAdmin, (req, res) => {
+  res.render("iocs/parse", {
+    title: "Parse Threat Report",
+    form: {}
+  });
+});
+
+router.post("/parse", requireAdmin, async (req, res, next) => {
+  try {
+    const { reportText, threatType, severity, source, description, tags } = req.body;
+    
+    if (!reportText) {
+      req.session.errorMessage = "Report text is required.";
+      return res.redirect("/iocs/parse");
+    }
+
+    const extracted = extractIocs(reportText);
+    let addedCount = 0;
+    let skippedCount = 0;
+
+    const allIocs = [
+      ...extracted.ips.map(ip => ({ value: ip, iocType: 'IP' })),
+      ...extracted.domains.map(d => ({ value: d, iocType: 'Domain' })),
+      ...extracted.hashes.map(h => ({ value: h, iocType: detectIocType(h) }))
+    ];
+
+    for (const item of allIocs) {
+      const value = normalizeIocValue(item.value);
+      if (!value) continue;
+
+      const exists = await Ioc.findOne({ value });
+      if (!exists) {
+        await Ioc.create({
+          value,
+          iocType: item.iocType,
+          threatType: String(threatType || "Unknown Threat").trim(),
+          severity: cleanSeverity(severity),
+          confidence: 50,
+          source: String(source || "Parsed Report").trim(),
+          description: String(description || "").trim(),
+          tags: parseTags(tags),
+          createdBy: req.session.user.id
+        });
+        addedCount++;
+      } else {
+        skippedCount++;
+      }
+    }
+
+    await writeAuditLog(req.session.user, "REPORT_PARSED", `Parsed text. Added: ${addedCount}, Skipped: ${skippedCount}`);
+    req.session.successMessage = `Successfully parsed report. Added ${addedCount} new IoCs (Skipped ${skippedCount} duplicates).`;
+    return res.redirect("/iocs");
+  } catch (error) {
+    next(error);
+  }
+});
+// ------------------------------------
 
 router.get("/search", requireAuth, (req, res) => {
   res.render("iocs/search", {
