@@ -6,7 +6,6 @@ const Ioc = require("../models/Ioc");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 const { detectIocType, normalizeIocValue } = require("../utils/detectIocType");
 const writeAuditLog = require("../utils/audit");
-const extractIocs = require("../utils/reportParser"); // New Parser Utility
 
 const router = express.Router();
 const upload = multer({ dest: "uploads/" });
@@ -33,174 +32,57 @@ function cleanIocType(value, fallbackValue) {
   return match || detectIocType(fallbackValue);
 }
 
-// --- NEW ROUTES FOR REPORT PARSING ---
-router.get("/parse", requireAdmin, (req, res) => {
-  res.render("iocs/parse", {
-    title: "Parse Threat Report",
-    form: {}
-  });
-});
+// Helper to explain WHY an IoC was categorized a certain way (For UI Demonstration)
+function analyzeIoc(value) {
+  if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(value)) {
+      return { type: 'IP', rule: 'Matches IPv4 octet pattern (e.g., xxx.xxx.xxx.xxx)' };
+  }
+  if (/^[A-Fa-f0-9]{32}$/.test(value)) return { type: 'MD5', rule: '32-character Hexadecimal string' };
+  if (/^[A-Fa-f0-9]{40}$/.test(value)) return { type: 'SHA1', rule: '40-character Hexadecimal string' };
+  if (/^[A-Fa-f0-9]{64}$/.test(value)) return { type: 'SHA256', rule: '64-character Hexadecimal signature' };
+  if (/^https?:\/\//.test(value)) return { type: 'URL', rule: 'Starts with HTTP/HTTPS protocol' };
+  if (/@/.test(value)) return { type: 'Email', rule: 'Contains @ routing symbol' };
+  if (/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) return { type: 'Domain', rule: 'Standard Domain Name pattern' };
+  
+  return { type: 'Unknown', rule: 'No matching signature found' };
+}
 
-router.post("/parse", requireAdmin, async (req, res, next) => {
+// ---------------------------------------------------------
+// EXPORT FEATURE (Step 4: Deployment Demonstration)
+// ---------------------------------------------------------
+router.get("/export", requireAdmin, async (req, res, next) => {
   try {
-    const { reportText, threatType, severity, source, description, tags } = req.body;
+    const iocs = await Ioc.find({}).sort({ updatedAt: -1 });
     
-    if (!reportText) {
-      req.session.errorMessage = "Report text is required.";
-      return res.redirect("/iocs/parse");
-    }
-
-    const extracted = extractIocs(reportText);
-    let addedCount = 0;
-    let skippedCount = 0;
-
-    const allIocs = [
-      ...extracted.ips.map(ip => ({ value: ip, iocType: 'IP' })),
-      ...extracted.domains.map(d => ({ value: d, iocType: 'Domain' })),
-      ...extracted.hashes.map(h => ({ value: h, iocType: detectIocType(h) }))
-    ];
-
-    for (const item of allIocs) {
-      const value = normalizeIocValue(item.value);
-      if (!value) continue;
-
-      const exists = await Ioc.findOne({ value });
-      if (!exists) {
-        await Ioc.create({
-          value,
-          iocType: item.iocType,
-          threatType: String(threatType || "Unknown Threat").trim(),
-          severity: cleanSeverity(severity),
-          confidence: 50,
-          source: String(source || "Parsed Report").trim(),
-          description: String(description || "").trim(),
-          tags: parseTags(tags),
-          createdBy: req.session.user.id
-        });
-        addedCount++;
-      } else {
-        skippedCount++;
-      }
-    }
-
-    await writeAuditLog(req.session.user, "REPORT_PARSED", `Parsed text. Added: ${addedCount}, Skipped: ${skippedCount}`);
-    req.session.successMessage = `Successfully parsed report. Added ${addedCount} new IoCs (Skipped ${skippedCount} duplicates).`;
-    return res.redirect("/iocs");
-  } catch (error) {
-    next(error);
-  }
-});
-// ------------------------------------
-
-router.get("/search", requireAuth, (req, res) => {
-  res.render("iocs/search", {
-    title: "Search IoC",
-    query: "",
-    detectedType: null,
-    result: null,
-    searched: false
-  });
-});
-
-router.post("/search", requireAuth, async (req, res, next) => {
-  try {
-    const query = normalizeIocValue(req.body.value);
-    const detectedType = detectIocType(query);
-    const result = query ? await Ioc.findOne({ value: query }) : null;
-
-    await writeAuditLog(req.session.user, "IOC_SEARCH", `Searched: ${query || "empty"}`);
-
-    res.render("iocs/search", {
-      title: "Search IoC",
-      query,
-      detectedType,
-      result,
-      searched: true
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get("/add", requireAdmin, (req, res) => {
-  res.render("iocs/add", {
-    title: "Add IoC",
-    form: {},
-    detectedType: null
-  });
-});
-
-router.post("/add", requireAdmin, async (req, res, next) => {
-  try {
-    const value = normalizeIocValue(req.body.value);
-    if (!value) {
-      req.session.errorMessage = "IoC value is required.";
-      return res.redirect("/iocs/add");
-    }
-
-    const iocType = cleanIocType(req.body.iocType, value);
-
-    await Ioc.create({
-      value,
-      iocType,
-      threatType: String(req.body.threatType || "Unknown Threat").trim(),
-      severity: cleanSeverity(req.body.severity),
-      confidence: Number(req.body.confidence || 50),
-      source: String(req.body.source || "Manual Entry").trim(),
-      description: String(req.body.description || "").trim(),
-      tags: parseTags(req.body.tags),
-      createdBy: req.session.user.id
+    // Create CSV headers
+    let csvData = "Value,Type,ThreatType,Severity,Confidence,Source,Tags,CreatedAt\n";
+    
+    // Append rows
+    iocs.forEach(ioc => {
+      const tags = ioc.tags.join("; ");
+      csvData += `"${ioc.value}","${ioc.iocType}","${ioc.threatType}","${ioc.severity}",${ioc.confidence},"${ioc.source}","${tags}","${ioc.createdAt}"\n`;
     });
 
-    await writeAuditLog(req.session.user, "IOC_ADDED", `Added IoC: ${value}`);
-    req.session.successMessage = "IoC added successfully.";
-    return res.redirect("/iocs");
-  } catch (error) {
-    if (error.code === 11000) {
-      req.session.errorMessage = "This IoC already exists.";
-      return res.redirect("/iocs/add");
-    }
-    next(error);
-  }
-});
+    await writeAuditLog(req.session.user, "IOC_EXPORT", `Exported ${iocs.length} IoCs to CSV`);
 
-router.get("/", requireAuth, async (req, res, next) => {
-  try {
-    const search = normalizeIocValue(req.query.search || "");
-    const severity = String(req.query.severity || "").trim();
-    const iocType = String(req.query.iocType || "").trim();
-
-    const filter = {};
-    if (search) {
-      filter.$or = [
-        { value: { $regex: search, $options: "i" } },
-        { threatType: { $regex: search, $options: "i" } },
-        { source: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } }
-      ];
-    }
-    if (severity) filter.severity = severity;
-    if (iocType) filter.iocType = iocType;
-
-    const iocs = await Ioc.find(filter).sort({ updatedAt: -1 }).limit(200);
-
-    res.render("iocs/list", {
-      title: "IoC Repository",
-      iocs,
-      search,
-      severity,
-      iocType
-    });
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=\"cyberguard_iocs.csv\"');
+    return res.status(200).send(csvData);
   } catch (error) {
     next(error);
   }
 });
 
+
+// ---------------------------------------------------------
+// CSV IMPORT LOGIC (Steps 1, 2, and 3)
+// ---------------------------------------------------------
 router.get("/import", requireAdmin, (req, res) => {
   res.render("iocs/import", { title: "Import CSV" });
 });
 
-router.post("/import", requireAdmin, upload.single("csvFile"), async (req, res, next) => {
+// Step 1 & 2: Read CSV, analyze patterns, and render the review page
+router.post("/import", requireAdmin, upload.single("csvFile"), (req, res, next) => {
   if (!req.file) {
     req.session.errorMessage = "Please choose a CSV file.";
     return res.redirect("/iocs/import");
@@ -212,46 +94,36 @@ router.post("/import", requireAdmin, upload.single("csvFile"), async (req, res, 
   fs.createReadStream(filePath)
     .pipe(csv())
     .on("data", (row) => rows.push(row))
-    .on("end", async () => {
-      try {
-        let imported = 0;
-        let skipped = 0;
+    .on("end", () => {
+      const previewData = [];
+      
+      rows.forEach(row => {
+        const value = normalizeIocValue(row.value || row.Value || row.ioc || row.IoC);
+        if (!value) return;
 
-        for (const row of rows) {
-          const value = normalizeIocValue(row.value || row.Value || row.ioc || row.IoC);
-          if (!value) {
-            skipped += 1;
-            continue;
-          }
+        // Extract and enrich the data to show the user
+        const analysis = analyzeIoc(value);
+        
+        previewData.push({
+          value,
+          detectedType: analysis.type,
+          detectionRule: analysis.rule,
+          threatType: String(row.threatType || row.threat_type || row.threat || "Unknown Threat").trim(),
+          severity: cleanSeverity(row.severity || row.Severity),
+          confidence: Number(row.confidence || 50),
+          source: String(row.source || "CSV Import").trim(),
+          tags: row.tags || ""
+        });
+      });
 
-          const doc = {
-            value,
-            iocType: cleanIocType(row.type || row.iocType || row.Type, value),
-            threatType: String(row.threatType || row.threat_type || row.threat || "Unknown Threat").trim(),
-            severity: cleanSeverity(row.severity || row.Severity),
-            confidence: Number(row.confidence || 50),
-            source: String(row.source || "CSV Import").trim(),
-            description: String(row.description || "").trim(),
-            tags: parseTags(row.tags || ""),
-            createdBy: req.session.user.id
-          };
-
-          await Ioc.updateOne(
-            { value },
-            { $set: doc },
-            { upsert: true, runValidators: true }
-          );
-          imported += 1;
-        }
-
-        fs.unlink(filePath, () => {});
-        await writeAuditLog(req.session.user, "CSV_IMPORT", `Imported/updated ${imported} rows, skipped ${skipped} rows`);
-        req.session.successMessage = `CSV processed. Imported/updated: ${imported}, skipped: ${skipped}.`;
-        return res.redirect("/iocs");
-      } catch (error) {
-        fs.unlink(filePath, () => {});
-        next(error);
-      }
+      fs.unlink(filePath, () => {}); // Clean up temp file
+      
+      // Render Step 2 (The Staging Area)
+      res.render("iocs/import-review", { 
+        title: "Review & Categorize IoCs", 
+        iocs: JSON.stringify(previewData),
+        displayData: previewData 
+      });
     })
     .on("error", (error) => {
       fs.unlink(filePath, () => {});
@@ -259,63 +131,138 @@ router.post("/import", requireAdmin, upload.single("csvFile"), async (req, res, 
     });
 });
 
-router.get("/:id/edit", requireAdmin, async (req, res, next) => {
+// Step 3: Admin clicks save, write to database
+router.post("/import/confirm", requireAdmin, async (req, res, next) => {
   try {
-    const ioc = await Ioc.findById(req.params.id);
-    if (!ioc) {
-      req.session.errorMessage = "IoC not found.";
-      return res.redirect("/iocs");
+    const iocsData = JSON.parse(req.body.iocsData);
+    let imported = 0;
+
+    for (const item of iocsData) {
+      const doc = {
+        value: item.value,
+        iocType: item.detectedType,
+        threatType: item.threatType,
+        severity: item.severity,
+        confidence: item.confidence,
+        source: item.source,
+        tags: parseTags(item.tags),
+        createdBy: req.session.user.id
+      };
+
+      await Ioc.updateOne(
+        { value: item.value },
+        { $set: doc },
+        { upsert: true, runValidators: true }
+      );
+      imported += 1;
     }
 
-    return res.render("iocs/edit", {
-      title: "Edit IoC",
-      ioc
-    });
+    await writeAuditLog(req.session.user, "CSV_IMPORT_CONFIRMED", `Imported/updated ${imported} rows via UI`);
+    req.session.successMessage = `Successfully deployed ${imported} IoCs into the repository.`;
+    return res.redirect("/iocs");
+
   } catch (error) {
     next(error);
   }
+});
+// ---------------------------------------------------------
+
+
+// Standard Search, List, Edit, Delete Routes remain unchanged below
+router.get("/search", requireAuth, (req, res) => {
+  res.render("iocs/search", { title: "Search IoC", query: "", detectedType: null, result: null, searched: false });
+});
+
+router.post("/search", requireAuth, async (req, res, next) => {
+  try {
+    const query = normalizeIocValue(req.body.value);
+    const detectedType = detectIocType(query);
+    const result = query ? await Ioc.findOne({ value: query }) : null;
+    await writeAuditLog(req.session.user, "IOC_SEARCH", `Searched: ${query || "empty"}`);
+    res.render("iocs/search", { title: "Search IoC", query, detectedType, result, searched: true });
+  } catch (error) { next(error); }
+});
+
+router.get("/add", requireAdmin, (req, res) => {
+  res.render("iocs/add", { title: "Add IoC", form: {}, detectedType: null });
+});
+
+router.post("/add", requireAdmin, async (req, res, next) => {
+  try {
+    const value = normalizeIocValue(req.body.value);
+    if (!value) { req.session.errorMessage = "IoC value is required."; return res.redirect("/iocs/add"); }
+    const iocType = cleanIocType(req.body.iocType, value);
+    await Ioc.create({
+      value, iocType, threatType: String(req.body.threatType || "Unknown Threat").trim(),
+      severity: cleanSeverity(req.body.severity), confidence: Number(req.body.confidence || 50),
+      source: String(req.body.source || "Manual Entry").trim(), description: String(req.body.description || "").trim(),
+      tags: parseTags(req.body.tags), createdBy: req.session.user.id
+    });
+    await writeAuditLog(req.session.user, "IOC_ADDED", `Added IoC: ${value}`);
+    req.session.successMessage = "IoC added successfully.";
+    return res.redirect("/iocs");
+  } catch (error) {
+    if (error.code === 11000) { req.session.errorMessage = "This IoC already exists."; return res.redirect("/iocs/add"); }
+    next(error);
+  }
+});
+
+router.get("/", requireAuth, async (req, res, next) => {
+  try {
+    const search = normalizeIocValue(req.query.search || "");
+    const severity = String(req.query.severity || "").trim();
+    const iocType = String(req.query.iocType || "").trim();
+    const filter = {};
+    if (search) {
+      filter.$or = [
+        { value: { $regex: search, $options: "i" } },
+        { threatType: { $regex: search, $options: "i" } },
+        { source: { $regex: search, $options: "i" } },
+        { tags: { $regex: search, $options: "i" } }
+      ];
+    }
+    if (severity) filter.severity = severity;
+    if (iocType) filter.iocType = iocType;
+    const iocs = await Ioc.find(filter).sort({ updatedAt: -1 }).limit(200);
+    res.render("iocs/list", { title: "IoC Repository", iocs, search, severity, iocType });
+  } catch (error) { next(error); }
+});
+
+router.get("/:id/edit", requireAdmin, async (req, res, next) => {
+  try {
+    const ioc = await Ioc.findById(req.params.id);
+    if (!ioc) { req.session.errorMessage = "IoC not found."; return res.redirect("/iocs"); }
+    return res.render("iocs/edit", { title: "Edit IoC", ioc });
+  } catch (error) { next(error); }
 });
 
 router.post("/:id/edit", requireAdmin, async (req, res, next) => {
   try {
     const value = normalizeIocValue(req.body.value);
     const iocType = cleanIocType(req.body.iocType, value);
-
     await Ioc.findByIdAndUpdate(
       req.params.id,
       {
-        value,
-        iocType,
-        threatType: String(req.body.threatType || "Unknown Threat").trim(),
-        severity: cleanSeverity(req.body.severity),
-        confidence: Number(req.body.confidence || 50),
-        source: String(req.body.source || "Manual Entry").trim(),
-        description: String(req.body.description || "").trim(),
+        value, iocType, threatType: String(req.body.threatType || "Unknown Threat").trim(),
+        severity: cleanSeverity(req.body.severity), confidence: Number(req.body.confidence || 50),
+        source: String(req.body.source || "Manual Entry").trim(), description: String(req.body.description || "").trim(),
         tags: parseTags(req.body.tags)
       },
       { runValidators: true }
     );
-
     await writeAuditLog(req.session.user, "IOC_UPDATED", `Updated IoC: ${value}`);
     req.session.successMessage = "IoC updated successfully.";
     return res.redirect("/iocs");
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
 router.post("/:id/delete", requireAdmin, async (req, res, next) => {
   try {
     const ioc = await Ioc.findByIdAndDelete(req.params.id);
-    if (ioc) {
-      await writeAuditLog(req.session.user, "IOC_DELETED", `Deleted IoC: ${ioc.value}`);
-    }
-
+    if (ioc) await writeAuditLog(req.session.user, "IOC_DELETED", `Deleted IoC: ${ioc.value}`);
     req.session.successMessage = "IoC deleted successfully.";
     return res.redirect("/iocs");
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
 module.exports = router;

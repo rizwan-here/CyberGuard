@@ -1,0 +1,49 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<main class="container">
+  <div class="page-header">
+    <h1>Review Detected Threats</h1>
+    <p>The system has analyzed your CSV upload. Review the categorized patterns below before deploying them to the repository.</p>
+  </div>
+
+  <div class="card form-card" style="max-width: 1000px;">
+    
+    <table class="data-table" style="width: 100%; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th>Indicator Value</th>
+          <th>Detected Type</th>
+          <th>Detection Reasoning / Pattern</th>
+          <th>Severity</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% displayData.forEach(item => { %>
+          <tr>
+            <td style="font-family: monospace; font-weight: bold;"><%= item.value %></td>
+            <td>
+              <span class="badge badge-gray"><%= item.detectedType %></span>
+            </td>
+            <td style="color: #555; font-size: 0.9em;">
+              <em>✓ <%= item.detectionRule %></em>
+            </td>
+            <td>
+              <span class="badge badge-<%= item.severity.toLowerCase() %>"><%= item.severity %></span>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <form action="/iocs/import/confirm" method="POST" style="display: flex; justify-content: space-between; align-items: center;">
+      <input type="hidden" name="iocsData" value="<%= iocs %>">
+      
+      <a href="/iocs/import" class="btn btn-secondary">Cancel & Go Back</a>
+      <button type="submit" class="btn btn-primary" style="font-size: 1.1em; padding: 10px 20px;">Confirm & Save All IoCs</button>
+    </form>
+
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

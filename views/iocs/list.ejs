@@ -1,77 +1,92 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navbar') %>
-<main class="container wide">
-  <%- include('../partials/flash') %>
-  <section class="page-title flex-title">
-    <div>
-      <h1>IoC Repository</h1>
-      <p>Browse and filter stored Indicators of Compromise.</p>
-    </div>
-    <% if (currentUser.role === "admin") { %>
-      <a href="/iocs/add" class="btn primary">Add IoC</a>
-    <% } %>
-  </section>
 
-  <section class="panel">
-    <form method="GET" action="/iocs" class="filter-form">
-      <input type="text" name="search" value="<%= search %>" placeholder="Search value, threat type, source, tag">
-      <select name="iocType">
-        <option value="">All Types</option>
-        <% ["IP", "Domain", "URL", "MD5", "SHA1", "SHA256", "Email", "Unknown"].forEach(type => { %>
-          <option value="<%= type %>" <%= iocType === type ? 'selected' : '' %>><%= type %></option>
-        <% }) %>
-      </select>
+<main class="container">
+  <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+    <h1>IoC Repository</h1>
+    
+    <div>
+      <% if (user && user.role === 'admin') { %>
+        <a href="/iocs/export" class="btn btn-secondary" style="margin-right: 10px; background-color: #28a745; color: white;">⬇ Export for SIEM</a>
+        
+        <a href="/iocs/add" class="btn btn-primary">+ Add New</a>
+        <a href="/iocs/import" class="btn btn-secondary">Import CSV</a>
+      <% } %>
+    </div>
+  </div>
+
+  <%- include('../partials/flash') %>
+  
+  <section class="filters-card">
+    <form action="/iocs" method="GET" class="filter-form">
+      <input type="text" name="search" placeholder="Search value, threat..." value="<%= search || '' %>">
       <select name="severity">
         <option value="">All Severities</option>
-        <% ["Low", "Medium", "High", "Critical"].forEach(sev => { %>
-          <option value="<%= sev %>" <%= severity === sev ? 'selected' : '' %>><%= sev %></option>
-        <% }) %>
+        <option value="Low" <%= severity === 'Low' ? 'selected' : '' %>>Low</option>
+        <option value="Medium" <%= severity === 'Medium' ? 'selected' : '' %>>Medium</option>
+        <option value="High" <%= severity === 'High' ? 'selected' : '' %>>High</option>
+        <option value="Critical" <%= severity === 'Critical' ? 'selected' : '' %>>Critical</option>
       </select>
-      <button class="btn" type="submit">Filter</button>
-      <a class="btn ghost" href="/iocs">Reset</a>
+      <select name="iocType">
+        <option value="">All Types</option>
+        <option value="IP" <%= iocType === 'IP' ? 'selected' : '' %>>IP</option>
+        <option value="Domain" <%= iocType === 'Domain' ? 'selected' : '' %>>Domain</option>
+        <option value="URL" <%= iocType === 'URL' ? 'selected' : '' %>>URL</option>
+        <option value="MD5" <%= iocType === 'MD5' ? 'selected' : '' %>>MD5</option>
+        <option value="SHA256" <%= iocType === 'SHA256' ? 'selected' : '' %>>SHA256</option>
+      </select>
+      <button type="submit" class="btn btn-secondary">Filter</button>
+      <a href="/iocs" class="btn btn-danger">Clear</a>
     </form>
   </section>
 
-  <section class="panel table-panel">
-    <% if (iocs.length === 0) { %>
-      <p class="muted">No IoCs found.</p>
-    <% } else { %>
-      <table>
-        <thead>
+  <section class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Value</th>
+          <th>Type</th>
+          <th>Threat Type</th>
+          <th>Severity</th>
+          <th>Tags</th>
+          <% if (user && user.role === 'admin') { %>
+            <th>Actions</th>
+          <% } %>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (iocs.length === 0) { %>
           <tr>
-            <th>Value</th>
-            <th>Type</th>
-            <th>Threat Type</th>
-            <th>Severity</th>
-            <th>Confidence</th>
-            <th>Source</th>
-            <th>Updated</th>
-            <% if (currentUser.role === "admin") { %><th>Action</th><% } %>
+            <td colspan="6" class="text-center">No IoCs found.</td>
           </tr>
-        </thead>
-        <tbody>
+        <% } else { %>
           <% iocs.forEach(ioc => { %>
             <tr>
-              <td class="mono wrap"><%= ioc.value %></td>
-              <td><%= ioc.iocType %></td>
+              <td><strong><%= ioc.value %></strong></td>
+              <td><span class="badge badge-gray"><%= ioc.iocType %></span></td>
               <td><%= ioc.threatType %></td>
-              <td><span class="badge <%= ioc.severity.toLowerCase() %>"><%= ioc.severity %></span></td>
-              <td><%= ioc.confidence %>%</td>
-              <td><%= ioc.source %></td>
-              <td><%= ioc.updatedAt.toLocaleDateString() %></td>
-              <% if (currentUser.role === "admin") { %>
-                <td class="actions">
-                  <a class="btn small" href="/iocs/<%= ioc._id %>/edit">Edit</a>
-                  <form action="/iocs/<%= ioc._id %>/delete" method="POST" onsubmit="return confirm('Delete this IoC?')">
-                    <button class="btn small danger" type="submit">Delete</button>
+              <td>
+                <span class="badge badge-<%= ioc.severity.toLowerCase() %>"><%= ioc.severity %></span>
+              </td>
+              <td>
+                <% ioc.tags.forEach(tag => { %>
+                  <span class="tag"><%= tag %></span>
+                <% }) %>
+              </td>
+              <% if (user && user.role === 'admin') { %>
+                <td>
+                  <a href="/iocs/<%= ioc._id %>/edit" class="btn-small text-blue">Edit</a>
+                  <form action="/iocs/<%= ioc._id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this IoC?');">
+                    <button type="submit" class="btn-small text-red" style="background:none;border:none;cursor:pointer;">Delete</button>
                   </form>
                 </td>
               <% } %>
             </tr>
           <% }) %>
-        </tbody>
-      </table>
-    <% } %>
+        <% } %>
+      </tbody>
+    </table>
   </section>
 </main>
+
 <%- include('../partials/footer') %>
