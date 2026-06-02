@@ -24,12 +24,13 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "cyberguard_local_secret",
+    secret: process.env.SESSION_SECRET || require("crypto").randomBytes(32).toString("hex"),
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
       sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
       maxAge: 1000 * 60 * 60 * 3
     }
   })

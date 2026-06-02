@@ -6,6 +6,43 @@ const writeAuditLog = require("../utils/audit");
 
 const router = express.Router();
 
+const SAFE_DOMAINS = new Set([
+  "localhost", "example.com", "example.org", "test.com",
+  "google.com", "googleapis.com", "gstatic.com", "youtube.com",
+  "cloudflare.com", "cloudfront.net", "amazonaws.com",
+  "microsoft.com", "windows.com", "apple.com", "icloud.com"
+]);
+
+const SUSPICIOUS_URL_PATH = /(?:^|\/)(?:admin|dashboard|login|manage|panel|secure|phpmyadmin|wp-admin|config|\.env|shell|console|cgi-bin)/i;
+
+function classifyIoc(value, iocType, iocRecord) {
+  if (iocRecord) return "known_threat";
+
+  if (iocType === "URL") {
+    try {
+      const url = new URL(value);
+      const host = url.hostname.toLowerCase().replace(/^www\./, "");
+      if (SUSPICIOUS_URL_PATH.test(url.pathname + url.search + url.hash)) {
+        return "vulnerable";
+      }
+      if (SAFE_DOMAINS.has(host)) {
+        return "safe";
+      }
+    } catch (__) {
+      return "unknown";
+    }
+  }
+
+  if (iocType === "Domain") {
+    const host = value.toLowerCase().replace(/^www\./, "");
+    if (SAFE_DOMAINS.has(host)) {
+      return "safe";
+    }
+  }
+
+  return "unknown";
+}
+
 // ─── Render the browser scan page ────────────────────────────────────────────
 router.get("/browser-scan", requireAuth, (req, res) => {
   res.render("iocs/browser-scan", {
@@ -36,7 +73,7 @@ router.post("/browser-detect", requireAuth, async (req, res, next) => {
       return {
         value,
         iocType,
-        status: iocRecord ? "known_threat" : "unknown",
+        status: classifyIoc(value, iocType, iocRecord),
         iocRecord
       };
     });

@@ -55,6 +55,8 @@
     <div class="tab-bar" id="tabBar">
       <button class="tab active" data-filter="all">All</button>
       <button class="tab" data-filter="known_threat">⚠ Known Threats</button>
+      <button class="tab" data-filter="vulnerable">🚨 Vulnerable</button>
+      <button class="tab" data-filter="safe">✔ Safe</button>
       <button class="tab" data-filter="unknown">❓ Unknown</button>
     </div>
 
@@ -215,6 +217,16 @@
   color: #fca5a5;
   border-color: var(--danger);
 }
+.chip-vulnerable {
+  background: rgba(251,191,36,.12);
+  color: #f59e0b;
+  border-color: #f59e0b;
+}
+.chip-safe {
+  background: rgba(34,197,94,.12);
+  color: #4ade80;
+  border-color: #4ade80;
+}
 .chip-unknown {
   background: rgba(245,158,11,.1);
   color: #fcd34d;
@@ -236,6 +248,16 @@
   background: rgba(239,68,68,.15);
   color: #fca5a5;
   border: 1px solid var(--danger);
+}
+.status-vulnerable {
+  background: rgba(251,191,36,.12);
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+}
+.status-safe {
+  background: rgba(34,197,94,.15);
+  color: #4ade80;
+  border: 1px solid #4ade80;
 }
 .status-unknown {
   background: rgba(245,158,11,.1);
@@ -368,7 +390,7 @@ tr.row-saved td { opacity: .55; }
       found.add(u.toLowerCase());
       try {
         const host = new URL(u).hostname;
-        if (host && !BENIGN_DOMAINS.has(host)) found.add(host.toLowerCase());
+        if (host) found.add(host.toLowerCase());
       } catch (_) {}
     }
 
@@ -406,7 +428,7 @@ tr.row-saved td { opacity: .55; }
     const domains = text.match(RE.domain) || [];
     for (const d of domains) {
       const dl = d.toLowerCase();
-      if (!BENIGN_DOMAINS.has(dl) && ![...found].some(f => f === dl || f.endsWith("/" + dl))) {
+      if (![...found].some(f => f === dl || f.endsWith("/" + dl))) {
         found.add(dl);
       }
     }
@@ -513,11 +535,15 @@ tr.row-saved td { opacity: .55; }
     resultsBody.innerHTML = "";
 
     const threats = allResults.filter(r => r.status === "known_threat");
+    const vulnerable = allResults.filter(r => r.status === "vulnerable");
+    const safe = allResults.filter(r => r.status === "safe");
     const unknowns = allResults.filter(r => r.status === "unknown");
 
     resultSummary.innerHTML = `
       <span class="result-chip chip-total">${allResults.length} extracted</span>
       ${threats.length ? `<span class="result-chip chip-threat">⚠ ${threats.length} known threat${threats.length > 1 ? "s" : ""}</span>` : ""}
+      ${vulnerable.length ? `<span class="result-chip chip-vulnerable">🚨 ${vulnerable.length} vulnerable</span>` : ""}
+      ${safe.length ? `<span class="result-chip chip-safe">✔ ${safe.length} safe</span>` : ""}
       ${unknowns.length ? `<span class="result-chip chip-unknown">❓ ${unknowns.length} unknown</span>` : ""}
     `;
 
@@ -529,7 +555,9 @@ tr.row-saved td { opacity: .55; }
 
       const statusClass = "status-" + r.status;
       const statusLabel = r.status === "known_threat" ? "⚠ Known Threat" :
-                          r.status === "saved"        ? "✔ Saved"        : "❓ Unknown";
+                          r.status === "vulnerable"   ? "🚨 Vulnerable" :
+                          r.status === "safe"         ? "✔ Safe"        :
+                          r.status === "saved"        ? "✔ Saved"       : "❓ Unknown";
 
       const threatInfo = r.iocRecord
         ? `<span class="badge ${r.iocRecord.severity.toLowerCase()}">${r.iocRecord.severity}</span>
@@ -537,12 +565,16 @@ tr.row-saved td { opacity: .55; }
         : `<span style="color:var(--muted);font-size:12px">Not in repository</span>`;
 
       const actions = isAdmin
-        ? (r.status !== "saved"
-            ? `<button class="btn small primary" onclick="openSaveModal(${i})">💾 Save</button>`
-            : `<span class="muted" style="font-size:12px">Saved ✓</span>`)
-        : `<span class="muted" style="font-size:12px">Admin only</span>`;
+        ? (r.status === "saved"
+            ? `<span class="muted" style="font-size:12px">Saved ✓</span>`
+            : (r.status === "safe"
+                ? `<span class="muted" style="font-size:12px">No action</span>`
+                : `<button class="btn small primary" onclick="openSaveModal(${i})">💾 Save</button>`))
+        : (r.status === "safe"
+            ? `<span class="muted" style="font-size:12px">Safe</span>`
+            : `<span class="muted" style="font-size:12px">Admin only</span>`);
 
-      const checkbox = (isAdmin && r.status !== "known_threat" && r.status !== "saved")
+      const checkbox = (isAdmin && (r.status === "unknown" || r.status === "vulnerable"))
         ? `<input type="checkbox" class="row-cb" data-index="${i}">`
         : "";
 
