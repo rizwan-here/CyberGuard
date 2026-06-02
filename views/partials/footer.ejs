@@ -1,5 +1,48 @@
 <footer class="footer">
-  <p>CyberGuard · Local SOC Threat Intelligence Repository · No cloud database required</p>
+  <p class="mono" style="font-size: 12px; letter-spacing: 1px;">
+    [ CYBERGUARD ] SYSTEM ONLINE // LOCAL SOC THREAT INTELLIGENCE REPOSITORY
+  </p>
 </footer>
+
+<script>
+  function triggerLoader(timeout = 0) {
+    const loader = document.getElementById('cyber-loader');
+    if(loader) {
+      loader.classList.add('active');
+      // If a timeout is provided (e.g., for file downloads), automatically hide the loader after X ms
+      if (timeout > 0) {
+        setTimeout(() => loader.classList.remove('active'), timeout);
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Action 1: Logging In (Intercept the login form submission)
+    const loginForm = document.querySelector('.login-card form');
+    if (loginForm) {
+      loginForm.addEventListener('submit', () => triggerLoader());
+    }
+
+    // Action 2: Importing CSV (Intercept forms posting to /iocs/import or /iocs/import/confirm)
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      const action = form.getAttribute('action') || '';
+      if (action.includes('/iocs/import')) {
+        form.addEventListener('submit', () => triggerLoader());
+      }
+    });
+
+    // Action 3: Exporting Report (Intercept the export button click)
+    const exportBtn = document.querySelector('a[href="/iocs/export"]');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        // Exporting triggers a download (no page reload). 
+        // We spin the loader for 2 seconds to look cool, then hide it so the user can keep working.
+        triggerLoader(2000); 
+      });
+    }
+  });
+</script>
+
 </body>
 </html>

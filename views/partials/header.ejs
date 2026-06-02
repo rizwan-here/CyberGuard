@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title ? title + " | " : "" %>CyberGuard</title>
+  <title><%= typeof title !== 'undefined' && title ? title + " | " : "" %>CyberGuard</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+  
+  <div id="cyber-loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">INITIALIZING CYBERGUARD...</div>
+  </div>

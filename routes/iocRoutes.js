@@ -168,7 +168,7 @@ router.post("/import/confirm", requireAdmin, async (req, res, next) => {
 // ---------------------------------------------------------
 
 
-// Standard Search, List, Edit, Delete Routes remain unchanged below
+// Standard Search Route
 router.get("/search", requireAuth, (req, res) => {
   res.render("iocs/search", { title: "Search IoC", query: "", detectedType: null, result: null, searched: false });
 });
@@ -183,6 +183,7 @@ router.post("/search", requireAuth, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// Standard Add Route
 router.get("/add", requireAdmin, (req, res) => {
   res.render("iocs/add", { title: "Add IoC", form: {}, detectedType: null });
 });
@@ -207,11 +208,13 @@ router.post("/add", requireAdmin, async (req, res, next) => {
   }
 });
 
+// Standard List Route (With the user fix applied)
 router.get("/", requireAuth, async (req, res, next) => {
   try {
     const search = normalizeIocValue(req.query.search || "");
     const severity = String(req.query.severity || "").trim();
     const iocType = String(req.query.iocType || "").trim();
+
     const filter = {};
     if (search) {
       filter.$or = [
@@ -223,11 +226,23 @@ router.get("/", requireAuth, async (req, res, next) => {
     }
     if (severity) filter.severity = severity;
     if (iocType) filter.iocType = iocType;
+
     const iocs = await Ioc.find(filter).sort({ updatedAt: -1 }).limit(200);
-    res.render("iocs/list", { title: "IoC Repository", iocs, search, severity, iocType });
-  } catch (error) { next(error); }
+
+    res.render("iocs/list", {
+      title: "IoC Repository",
+      iocs,
+      search,
+      severity,
+      iocType,
+      user: req.session.user // <--- User fix added here
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
+// Standard Edit & Delete Routes
 router.get("/:id/edit", requireAdmin, async (req, res, next) => {
   try {
     const ioc = await Ioc.findById(req.params.id);
