@@ -1,98 +1,243 @@
 <%- include('partials/header') %>
 <%- include('partials/navbar') %>
-<main class="container">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<main class="container wide">
   <%- include('partials/flash') %>
-  <section class="page-title">
-    <h1>Dashboard</h1>
-    <p>Quick view of your local threat intelligence repository.</p>
+
+  <section class="page-title flex-title">
+    <div>
+      <h1 style="color: var(--primary); text-shadow: 0 0 15px var(--glow-primary);">Cyberguard Dashboard</h1>
+      <p class="muted">Real-time threat intelligence telemetry and analytics.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+      <% if (user && user.role === 'admin') { %>
+        <a href="/iocs/add" class="btn primary">+ Add New IoC</a>
+      <% } %>
+      <a href="/iocs" class="btn ghost">View Repository</a>
+    </div>
   </section>
 
   <section class="stats-grid">
     <div class="stat-card">
-      <span>Total IoCs</span>
-      <strong><%= totalIocs %></strong>
+      <span>Total Indicators</span>
+      <strong><%= stats.totalIocs %></strong>
     </div>
     <div class="stat-card critical">
-      <span>Critical IoCs</span>
-      <strong><%= criticalIocs %></strong>
+      <span>Critical Threats</span>
+      <strong><%= stats.criticalIocs %></strong>
     </div>
     <div class="stat-card high">
       <span>High Severity</span>
-      <strong><%= highIocs %></strong>
+      <strong><%= stats.highIocs %></strong>
     </div>
     <div class="stat-card">
-      <span>Logged In As</span>
-      <strong><%= currentUser.role %></strong>
+      <span>Unique Campaigns</span>
+      <strong style="color: var(--success);"><%= stats.uniqueThreats %></strong>
     </div>
   </section>
 
-  <section class="two-column">
+  <section class="two-column" style="margin-bottom: 20px;">
     <div class="panel">
-      <h2>IoCs by Type</h2>
-      <% if (byType.length === 0) { %>
-        <p class="muted">No IoCs added yet.</p>
-      <% } else { %>
-        <table>
-          <thead><tr><th>Type</th><th>Count</th></tr></thead>
-          <tbody>
-            <% byType.forEach(item => { %>
-              <tr><td><%= item._id %></td><td><%= item.count %></td></tr>
-            <% }) %>
-          </tbody>
-        </table>
-      <% } %>
+      <h2>Severity Distribution</h2>
+      <div style="position: relative; height: 300px; width: 100%; display: flex; justify-content: center;">
+        <canvas id="severityChart"></canvas>
+      </div>
     </div>
-
     <div class="panel">
-      <h2>IoCs by Severity</h2>
-      <% if (bySeverity.length === 0) { %>
-        <p class="muted">No IoCs added yet.</p>
-      <% } else { %>
-        <table>
-          <thead><tr><th>Severity</th><th>Count</th></tr></thead>
-          <tbody>
-            <% bySeverity.forEach(item => { %>
-              <tr><td><span class="badge <%= item._id.toLowerCase() %>"><%= item._id %></span></td><td><%= item.count %></td></tr>
-            <% }) %>
-          </tbody>
-        </table>
-      <% } %>
+      <h2>Observable Objects (Types)</h2>
+      <div style="position: relative; height: 300px; width: 100%; display: flex; justify-content: center;">
+        <canvas id="typeChart"></canvas>
+      </div>
     </div>
   </section>
 
-  <section class="two-column">
-    <div class="panel">
-      <h2>Recent IoCs</h2>
-      <% if (recentIocs.length === 0) { %>
-        <p class="muted">Start by adding or importing IoCs.</p>
-      <% } else { %>
-        <table>
-          <thead><tr><th>Value</th><th>Type</th><th>Severity</th></tr></thead>
-          <tbody>
+  <section class="panel">
+    <h2>Top Active Threat Campaigns</h2>
+    <div style="position: relative; height: 350px; width: 100%;">
+      <canvas id="threatChart"></canvas>
+    </div>
+  </section>
+
+  <section class="panel table-panel">
+    <div class="flex-title" style="margin-bottom: 15px;">
+      <h2 style="margin: 0;">Live Intelligence Feed</h2>
+      <a href="/iocs" style="font-size: 13px; color: var(--primary);">View All →</a>
+    </div>
+    
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Indicator</th>
+            <th>Type</th>
+            <th>Threat</th>
+            <th>Severity</th>
+            <th>Source</th>
+            <th>Time Added</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (recentIocs.length === 0) { %>
+            <tr><td colspan="6" class="muted" style="text-align: center;">No recent activity.</td></tr>
+          <% } else { %>
             <% recentIocs.forEach(ioc => { %>
               <tr>
-                <td class="mono"><%= ioc.value %></td>
-                <td><%= ioc.iocType %></td>
+                <td class="break-cell decode-text" style="max-width: 250px;"><%= ioc.value %></td>
+                <td><span class="badge medium"><%= ioc.iocType %></span></td>
+                <td style="color: var(--muted);"><%= ioc.threatType %></td>
                 <td><span class="badge <%= ioc.severity.toLowerCase() %>"><%= ioc.severity %></span></td>
+                <td><span style="font-size: 12px; color: #cbd5e1;"><%= ioc.source %></span></td>
+                <td style="font-size: 12px; color: var(--muted);"><%= ioc.createdAt.toLocaleTimeString() %> - <%= ioc.createdAt.toLocaleDateString() %></td>
               </tr>
             <% }) %>
-          </tbody>
-        </table>
-      <% } %>
-    </div>
-
-    <div class="panel">
-      <h2>Recent Audit Logs</h2>
-      <% if (recentLogs.length === 0) { %>
-        <p class="muted">No audit logs yet.</p>
-      <% } else { %>
-        <ul class="log-list">
-          <% recentLogs.forEach(log => { %>
-            <li><strong><%= log.action %></strong><span><%= log.username %> · <%= log.createdAt.toLocaleString() %></span></li>
-          <% }) %>
-        </ul>
-      <% } %>
+          <% } %>
+        </tbody>
+      </table>
     </div>
   </section>
 </main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Cyberpunk Color Palette
+    const colors = {
+      primary: '#38bdf8',    // Cyan
+      primaryGlow: 'rgba(56, 189, 248, 0.4)',
+      danger: '#ef4444',     // Red
+      dangerGlow: 'rgba(239, 68, 68, 0.4)',
+      warning: '#f59e0b',    // Yellow/Orange
+      warningGlow: 'rgba(245, 158, 11, 0.4)',
+      success: '#22c55e',    // Green
+      successGlow: 'rgba(34, 197, 94, 0.4)',
+      grid: '#243554',
+      text: '#94a3b8'
+    };
+
+    // Global Chart Defaults
+    Chart.defaults.color = colors.text;
+    Chart.defaults.font.family = 'Consolas, Monaco, "Courier New", monospace';
+
+    // Helper to map severity to colors
+    const getSeverityColor = (sev) => {
+      if(sev === 'Critical') return [colors.danger, colors.dangerGlow];
+      if(sev === 'High') return [colors.warning, colors.warningGlow];
+      if(sev === 'Medium') return [colors.primary, colors.primaryGlow];
+      return [colors.success, colors.successGlow];
+    };
+
+    // --- 1. Severity Doughnut Chart ---
+    const rawSevData = <%- chartData.severity %>;
+    const sevLabels = rawSevData.map(d => d._id || 'Unknown');
+    const sevValues = rawSevData.map(d => d.count);
+    const sevBgColors = sevLabels.map(l => getSeverityColor(l)[1]);
+    const sevBorderColors = sevLabels.map(l => getSeverityColor(l)[0]);
+
+    new Chart(document.getElementById('severityChart'), {
+      type: 'doughnut',
+      data: {
+        labels: sevLabels,
+        datasets: [{
+          data: sevValues,
+          backgroundColor: sevBgColors,
+          borderColor: sevBorderColors,
+          borderWidth: 2,
+          hoverOffset: 10
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'right' } },
+        cutout: '70%'
+      }
+    });
+
+    // --- 2. Type Polar Area Chart ---
+    const rawTypeData = <%- chartData.types %>;
+    new Chart(document.getElementById('typeChart'), {
+      type: 'polarArea',
+      data: {
+        labels: rawTypeData.map(d => d._id),
+        datasets: [{
+          data: rawTypeData.map(d => d.count),
+          backgroundColor: [
+            colors.primaryGlow, colors.successGlow, colors.warningGlow, 
+            colors.dangerGlow, 'rgba(168, 85, 247, 0.4)'
+          ],
+          borderColor: [
+            colors.primary, colors.success, colors.warning, 
+            colors.danger, '#a855f7'
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'right' } },
+        scales: {
+          r: {
+            grid: { color: colors.grid },
+            ticks: { display: false }
+          }
+        }
+      }
+    });
+
+    // --- 3. Top Threats Bar Chart ---
+    const rawThreatData = <%- chartData.threats %>;
+    new Chart(document.getElementById('threatChart'), {
+      type: 'bar',
+      data: {
+        labels: rawThreatData.map(d => d._id || 'Unknown'),
+        datasets: [{
+          label: 'Number of Indicators',
+          data: rawThreatData.map(d => d.count),
+          backgroundColor: colors.dangerGlow,
+          borderColor: colors.danger,
+          borderWidth: 2,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: colors.grid },
+            ticks: { precision: 0 }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    // Trigger the cinematic text decryption for the table
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]|:;<>,.?/~`";
+    document.querySelectorAll('.decode-text').forEach((el, index) => {
+      const row = el.closest('tr');
+      const delay = index * 60; 
+      if (row) {
+        row.style.opacity = '0';
+        row.style.animation = `fadeInRow 0.4s ease-out forwards ${delay}ms`;
+      }
+      const finalValue = el.innerText.trim();
+      let iterations = 0;
+      setTimeout(() => {
+        const interval = setInterval(() => {
+          el.innerText = finalValue.split("").map((char, i) => i < iterations ? finalValue[i] : chars[Math.floor(Math.random() * chars.length)]).join("");
+          if(iterations >= finalValue.length) clearInterval(interval);
+          iterations += finalValue.length > 30 ? 4 : 2;
+        }, 15);
+      }, delay);
+    });
+  });
+</script>
+
 <%- include('partials/footer') %>
