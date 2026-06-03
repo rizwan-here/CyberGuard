@@ -9,7 +9,6 @@
     const loader = document.getElementById('cyber-loader');
     if(loader) {
       loader.classList.add('active');
-      // If a timeout is provided (e.g., for file downloads), automatically hide the loader after X ms
       if (timeout > 0) {
         setTimeout(() => loader.classList.remove('active'), timeout);
       }
@@ -17,30 +16,57 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    // Action 1: Logging In (Intercept the login form submission)
+    // 1. Loading Overlay Logic
     const loginForm = document.querySelector('.login-card form');
-    if (loginForm) {
-      loginForm.addEventListener('submit', () => triggerLoader());
-    }
+    if (loginForm) loginForm.addEventListener('submit', () => triggerLoader());
 
-    // Action 2: Importing CSV (Intercept forms posting to /iocs/import or /iocs/import/confirm)
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
       const action = form.getAttribute('action') || '';
-      if (action.includes('/iocs/import')) {
-        form.addEventListener('submit', () => triggerLoader());
-      }
+      if (action.includes('/iocs/import')) form.addEventListener('submit', () => triggerLoader());
     });
 
-    // Action 3: Exporting Report (Intercept the export button click)
     const exportBtn = document.querySelector('a[href="/iocs/export"]');
-    if (exportBtn) {
-      exportBtn.addEventListener('click', () => {
-        // Exporting triggers a download (no page reload). 
-        // We spin the loader for 2 seconds to look cool, then hide it so the user can keep working.
-        triggerLoader(2000); 
-      });
-    }
+    if (exportBtn) exportBtn.addEventListener('click', () => triggerLoader(2000));
+
+    // 2. Cinematic ASCII Decryption & Row Fade-in Logic
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]|:;<>,.?/~`";
+    const decodeElements = document.querySelectorAll('.decode-text');
+
+    decodeElements.forEach((el) => {
+      // Find the row so we can fade it in
+      const row = el.closest('tr');
+      // Get the index of the row relative to siblings to stagger the delay
+      const rowIndex = row ? Array.from(row.parentNode.children).indexOf(row) : 0;
+      const staggerDelayMs = rowIndex * 60; // 60ms stagger per row
+
+      if (row) {
+        row.style.opacity = '0'; // Hide initially
+        // Apply fade-in animation, staggering the start time
+        row.style.animation = `fadeInRow 0.4s ease-out forwards ${staggerDelayMs}ms`;
+      }
+
+      const finalValue = el.innerText.trim();
+      el.dataset.value = finalValue;
+      let iterations = 0;
+
+      // Start character scramble exactly when the row starts fading in
+      setTimeout(() => {
+        const interval = setInterval(() => {
+          el.innerText = finalValue.split("")
+            .map((char, index) => {
+              if(index < iterations) return finalValue[index]; // Lock correct char
+              return chars[Math.floor(Math.random() * chars.length)]; // Scramble
+            })
+            .join("");
+
+          if(iterations >= finalValue.length) clearInterval(interval);
+
+          // FASTER: Increment iterations by 2 or 4 per frame
+          iterations += finalValue.length > 30 ? 4 : 2;
+        }, 15); // FASTER: 15ms interval instead of 30ms
+      }, staggerDelayMs);
+    });
   });
 </script>
 

@@ -12,7 +12,6 @@
     <a href="/iocs" class="btn ghost small">← Repository</a>
   </section>
 
-  <!-- ═══════════════════════════════════════════════════════════ INPUT PANEL -->
   <section class="panel" id="inputPanel">
     <h2>📋 Paste Content to Scan</h2>
     <p class="muted">Paste any log output, email headers, network capture notes, or text containing potential IoCs. The scanner also pre-fills your browser's current URL.</p>
@@ -34,7 +33,6 @@
       <span class="scan-hint muted" id="scanHint"></span>
     </div>
 
-    <!-- Quick-fill helpers -->
     <div class="quick-fills">
       <span class="muted" style="font-size:13px">Quick fill:</span>
       <button class="btn small ghost" id="qfUrl">Current URL</button>
@@ -44,14 +42,12 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════ RESULTS PANEL -->
   <section class="panel" id="resultsPanel" style="display:none">
     <div class="flex-title" style="margin-bottom:14px">
       <h2 style="margin:0">🧪 Scan Results</h2>
       <div class="result-summary" id="resultSummary"></div>
     </div>
 
-    <!-- Filter tabs -->
     <div class="tab-bar" id="tabBar">
       <button class="tab active" data-filter="all">All</button>
       <button class="tab" data-filter="known_threat">⚠ Known Threats</button>
@@ -78,7 +74,6 @@
       </table>
     </div>
 
-    <!-- Bulk save bar (only admin sees) -->
     <% if (currentUser && currentUser.role === 'admin') { %>
     <div class="bulk-bar" id="bulkBar" style="display:none">
       <span id="bulkCount" class="muted">0 selected</span>
@@ -96,7 +91,6 @@
     <% } %>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════ SAVE MODAL -->
   <% if (currentUser && currentUser.role === 'admin') { %>
   <div class="modal-overlay" id="saveModal" style="display:none">
     <div class="modal-box">
@@ -158,195 +152,45 @@
 
 </main>
 
-<!-- ═══════════════════════════════════════════════════════════ STYLES -->
 <style>
 .scan-input-row { margin-bottom: 12px; }
-.scan-input-row textarea {
-  width: 100%;
-  min-height: 140px;
-  font-family: Consolas, Monaco, monospace;
-  font-size: 13px;
-  resize: vertical;
-}
-.scan-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
+.scan-input-row textarea { width: 100%; min-height: 140px; font-family: Consolas, Monaco, monospace; font-size: 13px; resize: vertical; }
+.scan-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
 .scan-hint { font-size: 13px; }
-.quick-fills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
+.quick-fills { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 12px; border-top: 1px solid var(--border); }
 .tab-bar { display: flex; gap: 6px; flex-wrap: wrap; }
-.tab {
-  padding: 7px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--panel-light);
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 700;
-}
-.tab.active {
-  background: var(--primary-dark);
-  border-color: var(--primary);
-  color: #fff;
-}
-.result-summary {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.result-chip {
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  border: 1px solid var(--border);
-}
-.chip-threat {
-  background: rgba(239,68,68,.13);
-  color: #fca5a5;
-  border-color: var(--danger);
-}
-.chip-vulnerable {
-  background: rgba(251,191,36,.12);
-  color: #f59e0b;
-  border-color: #f59e0b;
-}
-.chip-safe {
-  background: rgba(34,197,94,.12);
-  color: #4ade80;
-  border-color: #4ade80;
-}
-.chip-unknown {
-  background: rgba(245,158,11,.1);
-  color: #fcd34d;
-  border-color: var(--warning);
-}
-.chip-total {
-  background: rgba(56,189,248,.1);
-  color: #7dd3fc;
-  border-color: var(--primary);
-}
-.status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-}
-.status-known_threat {
-  background: rgba(239,68,68,.15);
-  color: #fca5a5;
-  border: 1px solid var(--danger);
-}
-.status-vulnerable {
-  background: rgba(251,191,36,.12);
-  color: #f59e0b;
-  border: 1px solid #f59e0b;
-}
-.status-safe {
-  background: rgba(34,197,94,.15);
-  color: #4ade80;
-  border: 1px solid #4ade80;
-}
-.status-unknown {
-  background: rgba(245,158,11,.1);
-  color: #fcd34d;
-  border: 1px solid var(--warning);
-}
-.status-saved {
-  background: rgba(34,197,94,.15);
-  color: #86efac;
-  border: 1px solid var(--success);
-}
-.bulk-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 16px;
-  padding: 12px 16px;
-  background: rgba(56,189,248,.06);
-  border: 1px solid var(--primary);
-  border-radius: 12px;
-}
-.inline-select, .inline-input {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #0b1224;
-  color: var(--text);
-  font-size: 13px;
-}
+.tab { padding: 7px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-light); color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 700; }
+.tab.active { background: var(--primary-dark); border-color: var(--primary); color: #fff; }
+.result-summary { display: flex; gap: 10px; flex-wrap: wrap; }
+.result-chip { padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 800; border: 1px solid var(--border); }
+.chip-threat { background: rgba(239,68,68,.13); color: #fca5a5; border-color: var(--danger); }
+.chip-vulnerable { background: rgba(251,191,36,.12); color: #f59e0b; border-color: #f59e0b; }
+.chip-safe { background: rgba(34,197,94,.12); color: #4ade80; border-color: #4ade80; }
+.chip-unknown { background: rgba(245,158,11,.1); color: #fcd34d; border-color: var(--warning); }
+.chip-total { background: rgba(56,189,248,.1); color: #7dd3fc; border-color: var(--primary); }
+.status-badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
+.status-known_threat { background: rgba(239,68,68,.15); color: #fca5a5; border: 1px solid var(--danger); }
+.status-vulnerable { background: rgba(251,191,36,.12); color: #f59e0b; border: 1px solid #f59e0b; }
+.status-safe { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid #4ade80; }
+.status-unknown { background: rgba(245,158,11,.1); color: #fcd34d; border: 1px solid var(--warning); }
+.status-saved { background: rgba(34,197,94,.15); color: #86efac; border: 1px solid var(--success); }
+.bulk-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding: 12px 16px; background: rgba(56,189,248,.06); border: 1px solid var(--primary); border-radius: 12px; }
+.inline-select, .inline-input { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); background: #0b1224; color: var(--text); font-size: 13px; }
 .inline-input { width: 200px; }
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.65);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 16px;
-}
-.modal-box {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  width: min(560px, 96vw);
-  box-shadow: 0 24px 60px rgba(0,0,0,.5);
-  overflow: hidden;
-}
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 22px;
-  border-bottom: 1px solid var(--border);
-}
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; width: min(560px, 96vw); box-shadow: 0 24px 60px rgba(0,0,0,.5); overflow: hidden; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--border); }
 .modal-header h3 { margin: 0; }
 .modal-body { padding: 20px 22px; max-height: 65vh; overflow-y: auto; }
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 22px;
-  border-top: 1px solid var(--border);
-}
-.saving-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(15,23,42,.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 18px;
-  font-weight: 700;
-  color: var(--primary);
-  font-size: 18px;
-}
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--border); }
 tr.row-hidden { display: none; }
 tr.row-saved td { opacity: .55; }
 </style>
 
-<!-- ═══════════════════════════════════════════════════════════ CLIENT SCRIPT -->
 <script>
 (function () {
   "use strict";
 
-  // ── Regex patterns for IoC extraction ────────────────────────────────────
   const RE = {
     ipv4: /\b(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}\b/g,
     ipv6: /\b([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b|\b(([0-9a-fA-F]{1,4}:)*::([0-9a-fA-F]{1,4}:)*[0-9a-fA-F]{0,4})\b/g,
@@ -358,90 +202,72 @@ tr.row-saved td { opacity: .55; }
     email:  /\b[^\s@]+@[^\s@]+\.[^\s@]+\b/g
   };
 
-  // Private/reserved IP ranges to ignore (RFC 1918, loopback, link-local, etc.)
   const IGNORE_IPS = [
-    /^127\./,
-    /^10\./,
-    /^192\.168\./,
-    /^172\.(1[6-9]|2\d|3[01])\./,
-    /^169\.254\./,
-    /^0\.0\.0\.0$/,
-    /^255\.255\.255\.255$/
+    /^127\./, /^10\./, /^192\.168\./, /^172\.(1[6-9]|2\d|3[01])\./,
+    /^169\.254\./, /^0\.0\.0\.0$/, /^255\.255\.255\.255$/
   ];
 
-  function isPrivateIP(ip) {
-    return IGNORE_IPS.some(re => re.test(ip));
-  }
-
-  // Benign domains to skip
-  const BENIGN_DOMAINS = new Set([
-    "localhost", "example.com", "example.org", "test.com",
-    "google.com", "googleapis.com", "gstatic.com", "youtube.com",
-    "cloudflare.com", "cloudfront.net", "amazonaws.com",
-    "microsoft.com", "windows.com", "apple.com", "icloud.com"
-  ]);
+  function isPrivateIP(ip) { return IGNORE_IPS.some(re => re.test(ip)); }
 
   function extractIndicators(text) {
     const found = new Set();
-
-    // URLs first (extract host too)
     const urls = text.match(RE.url) || [];
     for (const u of urls) {
       found.add(u.toLowerCase());
-      try {
-        const host = new URL(u).hostname;
-        if (host) found.add(host.toLowerCase());
-      } catch (_) {}
+      try { const host = new URL(u).hostname; if (host) found.add(host.toLowerCase()); } catch (_) {}
     }
 
-    // IPs
     const ips4 = text.match(RE.ipv4) || [];
-    for (const ip of ips4) {
-      if (!isPrivateIP(ip)) found.add(ip);
-    }
+    for (const ip of ips4) { if (!isPrivateIP(ip)) found.add(ip); }
     const ips6 = text.match(RE.ipv6) || [];
     for (const ip of ips6) found.add(ip.toLowerCase());
 
-    // Hashes (longest first to avoid partial matches)
     const h256 = text.match(RE.sha256) || [];
     for (const h of h256) found.add(h.toLowerCase());
 
     const h1 = text.match(RE.sha1) || [];
-    for (const h of h1) {
-      if (![...found].some(f => f.includes(h.toLowerCase()))) {
-        found.add(h.toLowerCase());
-      }
-    }
+    for (const h of h1) { if (![...found].some(f => f.includes(h.toLowerCase()))) found.add(h.toLowerCase()); }
 
     const hm = text.match(RE.md5) || [];
-    for (const h of hm) {
-      if (![...found].some(f => f.includes(h.toLowerCase()))) {
-        found.add(h.toLowerCase());
-      }
-    }
+    for (const h of hm) { if (![...found].some(f => f.includes(h.toLowerCase()))) found.add(h.toLowerCase()); }
 
-    // Emails
     const emails = text.match(RE.email) || [];
     for (const e of emails) found.add(e.toLowerCase());
 
-    // Standalone domains (not already captured from URLs)
     const domains = text.match(RE.domain) || [];
     for (const d of domains) {
       const dl = d.toLowerCase();
-      if (![...found].some(f => f === dl || f.endsWith("/" + dl))) {
-        found.add(dl);
-      }
+      if (![...found].some(f => f === dl || f.endsWith("/" + dl))) found.add(dl);
     }
-
     return [...found].filter(Boolean);
   }
 
-  // ── State ─────────────────────────────────────────────────────────────────
+  // UPDATED: High-Speed Cinematic Decoder mapped to delays
+  function animateDecryption(element, delayMs = 0) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]|:;<>,.?/~`";
+    const finalValue = element.innerText.trim();
+    element.dataset.value = finalValue;
+    let iterations = 0;
+
+    setTimeout(() => {
+      const interval = setInterval(() => {
+        element.innerText = finalValue.split("")
+          .map((char, index) => {
+            if(index < iterations) return finalValue[index];
+            return chars[Math.floor(Math.random() * chars.length)];
+          })
+          .join("");
+
+        if(iterations >= finalValue.length) clearInterval(interval);
+        iterations += finalValue.length > 30 ? 4 : 2; // Fast character lock-in
+      }, 15); // Fast tick interval
+    }, delayMs);
+  }
+
   let allResults = [];
   let currentFilter = "all";
   const isAdmin = !!document.getElementById("bulkBar");
 
-  // ── DOM refs ──────────────────────────────────────────────────────────────
   const scanInput       = document.getElementById("scanInput");
   const btnScan         = document.getElementById("btnScan");
   const btnClear        = document.getElementById("btnClear");
@@ -454,83 +280,43 @@ tr.row-saved td { opacity: .55; }
   const bulkBar         = document.getElementById("bulkBar");
   const bulkCount       = document.getElementById("bulkCount");
   const btnBulkSave     = document.getElementById("btnBulkSave");
-  const bulkSeverity    = document.getElementById("bulkSeverity");
-  const bulkThreatType  = document.getElementById("bulkThreatType");
   const saveModal       = document.getElementById("saveModal");
 
-  // ── Quick-fill buttons ────────────────────────────────────────────────────
-  document.getElementById("qfUrl").addEventListener("click", () => {
-    scanInput.value += (scanInput.value ? "\n" : "") + window.location.href;
-  });
-  document.getElementById("qfReferrer").addEventListener("click", () => {
-    const r = document.referrer || "(no referrer)";
-    scanInput.value += (scanInput.value ? "\n" : "") + r;
-  });
-  document.getElementById("qfCookieDomains").addEventListener("click", () => {
-    // Extract domains from cookie string (limited; cookies are httpOnly for most)
-    const text = document.cookie || "(no accessible cookies)";
-    scanInput.value += (scanInput.value ? "\n" : "") + text;
-  });
+  document.getElementById("qfUrl").addEventListener("click", () => { scanInput.value += (scanInput.value ? "\n" : "") + window.location.href; });
+  document.getElementById("qfReferrer").addEventListener("click", () => { const r = document.referrer || "(no referrer)"; scanInput.value += (scanInput.value ? "\n" : "") + r; });
+  document.getElementById("qfCookieDomains").addEventListener("click", () => { const text = document.cookie || "(no accessible cookies)"; scanInput.value += (scanInput.value ? "\n" : "") + text; });
   document.getElementById("qfPerfEntries").addEventListener("click", () => {
-    if (!window.performance || !performance.getEntriesByType) {
-      scanInput.value += "\n(Performance API not available)";
-      return;
-    }
+    if (!window.performance || !performance.getEntriesByType) { scanInput.value += "\n(Performance API not available)"; return; }
     const entries = performance.getEntriesByType("resource");
-    const hosts = [...new Set(entries.map(e => {
-      try { return new URL(e.name).hostname; } catch (_) { return e.name; }
-    }))];
+    const hosts = [...new Set(entries.map(e => { try { return new URL(e.name).hostname; } catch (_) { return e.name; } }))];
     scanInput.value += (scanInput.value ? "\n" : "") + hosts.join("\n");
   });
 
-  // ── Clear ─────────────────────────────────────────────────────────────────
-  btnClear.addEventListener("click", () => {
-    scanInput.value = "";
-    resultsPanel.style.display = "none";
-    allResults = [];
-    scanHint.textContent = "";
-  });
+  btnClear.addEventListener("click", () => { scanInput.value = ""; resultsPanel.style.display = "none"; allResults = []; scanHint.textContent = ""; });
 
-  // ── Scan ──────────────────────────────────────────────────────────────────
   btnScan.addEventListener("click", async () => {
     const text = scanInput.value.trim();
     if (!text) { scanHint.textContent = "Please paste some content first."; return; }
 
     const indicators = extractIndicators(text);
-    if (indicators.length === 0) {
-      scanHint.textContent = "No recognisable IoCs found in the text.";
-      return;
-    }
+    if (indicators.length === 0) { scanHint.textContent = "No recognisable IoCs found in the text."; return; }
 
     scanHint.textContent = `Extracted ${indicators.length} indicator(s). Checking repository…`;
     btnScan.disabled = true;
     document.getElementById("scanBtnText").textContent = "⏳ Scanning…";
 
     try {
-      const resp = await fetch("/iocs/browser-detect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ indicators })
-      });
+      const resp = await fetch("/iocs/browser-detect", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ indicators }) });
       if (!resp.ok) throw new Error("Server error " + resp.status);
       const data = await resp.json();
       allResults = data.results || [];
       renderResults();
       scanHint.textContent = `Done — ${allResults.length} indicator(s) checked.`;
-    } catch (err) {
-      scanHint.textContent = "Error: " + err.message;
-    } finally {
-      btnScan.disabled = false;
-      document.getElementById("scanBtnText").textContent = "🔍 Scan for IoCs";
-    }
+    } catch (err) { scanHint.textContent = "Error: " + err.message; } finally { btnScan.disabled = false; document.getElementById("scanBtnText").textContent = "🔍 Scan for IoCs"; }
   });
 
-  // ── Render results table ──────────────────────────────────────────────────
   function renderResults() {
-    if (allResults.length === 0) {
-      resultsPanel.style.display = "none";
-      return;
-    }
+    if (allResults.length === 0) { resultsPanel.style.display = "none"; return; }
     resultsPanel.style.display = "";
     resultsBody.innerHTML = "";
 
@@ -565,35 +351,40 @@ tr.row-saved td { opacity: .55; }
         : `<span style="color:var(--muted);font-size:12px">Not in repository</span>`;
 
       const actions = isAdmin
-        ? (r.status === "saved"
-            ? `<span class="muted" style="font-size:12px">Saved ✓</span>`
-            : (r.status === "safe"
-                ? `<span class="muted" style="font-size:12px">No action</span>`
-                : `<button class="btn small primary" onclick="openSaveModal(${i})">💾 Save</button>`))
-        : (r.status === "safe"
-            ? `<span class="muted" style="font-size:12px">Safe</span>`
-            : `<span class="muted" style="font-size:12px">Admin only</span>`);
+        ? (r.status === "saved" ? `<span class="muted" style="font-size:12px">Saved ✓</span>` : (r.status === "safe" ? `<span class="muted" style="font-size:12px">No action</span>` : `<button class="btn small primary" onclick="openSaveModal(${i})">💾 Save</button>`))
+        : (r.status === "safe" ? `<span class="muted" style="font-size:12px">Safe</span>` : `<span class="muted" style="font-size:12px">Admin only</span>`);
 
-      const checkbox = (isAdmin && (r.status === "unknown" || r.status === "vulnerable"))
-        ? `<input type="checkbox" class="row-cb" data-index="${i}">`
-        : "";
+      const checkbox = (isAdmin && (r.status === "unknown" || r.status === "vulnerable")) ? `<input type="checkbox" class="row-cb" data-index="${i}">` : "";
 
       row.innerHTML = `
         <td>${checkbox}</td>
-        <td class="mono wrap" style="max-width:320px;font-size:12px">${escHtml(r.value)}</td>
+        <td style="max-width: 320px;">
+          <div class="mono wrap decode-text" style="font-size:12px;">${escHtml(r.value)}</div>
+        </td>
         <td><span class="badge medium" style="font-size:11px">${escHtml(r.iocType)}</span></td>
         <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
         <td>${threatInfo}</td>
         <td><div class="actions">${actions}</div></td>
       `;
-
       resultsBody.appendChild(row);
+    });
+
+    // UPDATED: Sync Row Fade with Text Decode
+    document.querySelectorAll('.decode-text:not(.decoded)').forEach((el, index) => {
+        el.classList.add('decoded');
+        const row = el.closest('tr');
+        const delay = index * 60; // 60ms stagger per row
+
+        if(row) {
+          row.style.opacity = '0';
+          row.style.animation = `fadeInRow 0.4s ease-out forwards ${delay}ms`;
+        }
+        animateDecryption(el, delay);
     });
 
     updateBulkBar();
   }
 
-  // ── Tabs ──────────────────────────────────────────────────────────────────
   tabBar.addEventListener("click", (e) => {
     const tab = e.target.closest(".tab");
     if (!tab) return;
@@ -607,20 +398,15 @@ tr.row-saved td { opacity: .55; }
     updateBulkBar();
   });
 
-  // ── Select-all checkbox ───────────────────────────────────────────────────
   selectAll && selectAll.addEventListener("change", () => {
     document.querySelectorAll(".row-cb").forEach(cb => {
       const row = cb.closest("tr");
-      if (!row.classList.contains("row-hidden")) {
-        cb.checked = selectAll.checked;
-      }
+      if (!row.classList.contains("row-hidden")) { cb.checked = selectAll.checked; }
     });
     updateBulkBar();
   });
 
-  document.addEventListener("change", (e) => {
-    if (e.target.classList.contains("row-cb")) updateBulkBar();
-  });
+  document.addEventListener("change", (e) => { if (e.target.classList.contains("row-cb")) updateBulkBar(); });
 
   function updateBulkBar() {
     if (!bulkBar) return;
@@ -629,13 +415,12 @@ tr.row-saved td { opacity: .55; }
     bulkCount.textContent = `${checked} selected`;
   }
 
-  // ── Bulk save ─────────────────────────────────────────────────────────────
   btnBulkSave && btnBulkSave.addEventListener("click", async () => {
     const checkboxes = [...document.querySelectorAll(".row-cb:checked")];
     if (checkboxes.length === 0) return;
 
-    const severity = bulkSeverity ? bulkSeverity.value : "Medium";
-    const threatType = (bulkThreatType && bulkThreatType.value.trim()) || "Browser-Detected Threat";
+    const severity = document.getElementById("bulkSeverity") ? document.getElementById("bulkSeverity").value : "Medium";
+    const threatType = (document.getElementById("bulkThreatType") && document.getElementById("bulkThreatType").value.trim()) || "Browser-Detected Threat";
 
     btnBulkSave.disabled = true;
     btnBulkSave.textContent = "⏳ Saving…";
@@ -645,19 +430,8 @@ tr.row-saved td { opacity: .55; }
       const i = parseInt(cb.dataset.index);
       const r = allResults[i];
       if (!r) continue;
-      const ok = await saveIoc({
-        value:      r.value,
-        iocType:    r.iocType,
-        threatType,
-        severity,
-        confidence: 70,
-        source:     "Browser Scanner (Bulk)",
-        tags:       ["browser-detected", "bulk-save"]
-      });
-      if (ok) {
-        allResults[i].status = "saved";
-        saved++;
-      }
+      const ok = await saveIoc({ value: r.value, iocType: r.iocType, threatType, severity, confidence: 70, source: "Browser Scanner (Bulk)", tags: ["browser-detected", "bulk-save"] });
+      if (ok) { allResults[i].status = "saved"; saved++; }
     }
 
     renderResults();
@@ -666,7 +440,6 @@ tr.row-saved td { opacity: .55; }
     scanHint.textContent = `${saved} indicator(s) saved to the repository.`;
   });
 
-  // ── Single save modal ─────────────────────────────────────────────────────
   window.openSaveModal = function (i) {
     if (!saveModal) return;
     const r = allResults[i];
@@ -685,22 +458,13 @@ tr.row-saved td { opacity: .55; }
     saveModal.style.display = "flex";
   };
 
-  ["closeModal", "closeModal2"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener("click", () => { saveModal.style.display = "none"; });
-  });
-
-  saveModal && saveModal.addEventListener("click", (e) => {
-    if (e.target === saveModal) saveModal.style.display = "none";
-  });
+  ["closeModal", "closeModal2"].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener("click", () => { saveModal.style.display = "none"; }); });
+  saveModal && saveModal.addEventListener("click", (e) => { if (e.target === saveModal) saveModal.style.display = "none"; });
 
   const btnConfirmSave = document.getElementById("btnConfirmSave");
   btnConfirmSave && btnConfirmSave.addEventListener("click", async () => {
     const threatType = document.getElementById("modalThreatType").value.trim();
-    if (!threatType) {
-      document.getElementById("modalThreatType").focus();
-      return;
-    }
+    if (!threatType) { document.getElementById("modalThreatType").focus(); return; }
 
     btnConfirmSave.disabled = true;
     btnConfirmSave.textContent = "⏳ Saving…";
@@ -728,39 +492,16 @@ tr.row-saved td { opacity: .55; }
     btnConfirmSave.textContent = "💾 Save to Repository";
   });
 
-  // ── Core save helper ──────────────────────────────────────────────────────
   async function saveIoc(payload) {
     try {
-      const resp = await fetch("/iocs/browser-save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-      if (!resp.ok) {
-        const d = await resp.json().catch(() => ({}));
-        alert("Save failed: " + (d.error || resp.statusText));
-        return false;
-      }
+      const resp = await fetch("/iocs/browser-save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      if (!resp.ok) { const d = await resp.json().catch(() => ({})); alert("Save failed: " + (d.error || resp.statusText)); return false; }
       return true;
-    } catch (err) {
-      alert("Network error: " + err.message);
-      return false;
-    }
+    } catch (err) { alert("Network error: " + err.message); return false; }
   }
 
-  // ── Utility ───────────────────────────────────────────────────────────────
-  function escHtml(str) {
-    return String(str || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
-  // Pre-fill current URL on load
-  if (window.location.href && window.location.href !== "about:blank") {
-    scanInput.value = window.location.href;
-  }
+  function escHtml(str) { return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+  if (window.location.href && window.location.href !== "about:blank") { scanInput.value = window.location.href; }
 
 })();
 </script>

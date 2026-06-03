@@ -4,41 +4,48 @@
 <main class="container">
   <div class="page-header">
     <h1>Review Detected Threats</h1>
-    <p>The system has analyzed your CSV upload. Review the categorized patterns below before deploying them to the repository.</p>
+    <p>The system has analyzed the raw data. Review the categorized patterns below before deploying them to the repository.</p>
   </div>
 
-  <div class="card form-card" style="max-width: 1000px;">
+  <div class="card form-card" style="max-width: 1000px; overflow: hidden;">
     
-    <table class="data-table" style="width: 100%; margin-bottom: 20px;">
-      <thead>
-        <tr>
-          <th>Indicator Value</th>
-          <th>Detected Type</th>
-          <th>Detection Reasoning / Pattern</th>
-          <th>Severity</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% displayData.forEach(item => { %>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td style="font-family: monospace; font-weight: bold;"><%= item.value %></td>
-            <td>
-              <span class="badge badge-gray"><%= item.detectedType %></span>
-            </td>
-            <td style="color: #555; font-size: 0.9em;">
-              <em>✓ <%= item.detectionRule %></em>
-            </td>
-            <td>
-              <span class="badge badge-<%= item.severity.toLowerCase() %>"><%= item.severity %></span>
-            </td>
+            <th>Indicator Value</th>
+            <th>Basic Type</th>
+            <th>STIX 2.1 Observable Object</th>
+            <th>Detection Reasoning</th>
+            <th>Severity</th>
           </tr>
-        <% }) %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% displayData.forEach(item => { %>
+            <tr>
+              <td class="break-cell decode-text"><%= item.value %></td>
+              <td>
+                <span class="badge badge-gray"><%= item.detectedType %></span>
+              </td>
+              <td>
+                <span class="mono" style="color: var(--primary); font-size: 13px;">
+                  <i style="color: var(--muted);">[STIX]</i> <%= item.stixStandard %>
+                </span>
+              </td>
+              <td style="color: var(--muted); font-size: 0.9em;">
+                <em>✓ <%= item.detectionRule %></em>
+              </td>
+              <td>
+                <span class="badge badge-<%= item.severity.toLowerCase() %>"><%= item.severity %></span>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
 
-    <form action="/iocs/import/confirm" method="POST" style="display: flex; justify-content: space-between; align-items: center;">
+    <form action="/iocs/import/confirm" method="POST" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
       <input type="hidden" name="iocsData" value="<%= iocs %>">
-      
       <a href="/iocs/import" class="btn btn-secondary">Cancel & Go Back</a>
       <button type="submit" class="btn btn-primary" style="font-size: 1.1em; padding: 10px 20px;">Confirm & Save All IoCs</button>
     </form>
